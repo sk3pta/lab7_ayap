@@ -19,6 +19,10 @@ random
 -
 ctime
 -
+string
+-
+thread
+-
 
 /home/augustus/CLionProjects/lab2_7/my_pack.h
 iostream
