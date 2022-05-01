@@ -6,6 +6,42 @@
 #include <ctime>
 #include <string>
 #include <thread>
+#include <fstream>
+
+// Функция заполняет массив псевдослучайными числами
+
+double *fill_array(size_t size) {
+    auto array = new double[size];
+    srandom(static_cast<int>(time(nullptr)));
+
+    for (size_t x = 0; x < size; ++x) {
+        array[x] = (double) (random() % 1000) / 10;
+    }
+
+    return array;
+}
+
+// Функция генерирует файл с числами doubly , созданными ГПСЧ
+void generate(size_t size ,std::ostream &out){
+    for (size_t x = 0; x < size; ++x) {
+        out << ((double) (random() % 1000) / 10) << std::endl;
+    }
+
+}
+
+
+
+void array_from_file(size_t size,double *array, std::ifstream &inp){
+    for (size_t x = 0; x < size; ++x){
+        //std::string temp;
+        //std::getline(inp,temp);
+        //array[x] = std::stod(temp);
+        inp >> array[x];
+    }
+    inp.seekg(0);
+
+
+}
 
 // Обрабатываем массив : сортируем методом прямого выбора от индексак from до
 // элемента с индексом to. После печатаем элементы в этом пределе вместе с
@@ -31,38 +67,31 @@ void array_proceed(double *array, size_t from, size_t to, const std::string &thr
     }
 }
 
-// Функция заполняет массив псевдослучайными числами
-double *fill_array(size_t size) {
-    auto array = new double[size];
-    srandom(static_cast<int>(time(nullptr)));
 
-    for (size_t x = 0; x < size; ++x) {
-        array[x] = (double) (random() % 1000) / 10;
-    }
-
-    return array;
-}
 
 
 int main(int argc, char *argv[]) {
 
-    // Инициализируем массив и заполним его ГПСЧ
-    double *test_array_async = fill_array(50);
-    double *test_array_thread = fill_array(50);
 
+    // Инициализируем массив и заполним его ГПСЧ
+    double *test_array_async = new double[50];
+    double *test_array_thread = new double[50];
+    std::ifstream inp("CLionProjects/lab2_7/in.txt");
+    array_from_file(50,test_array_async,inp);
+    array_from_file(50,test_array_thread,inp);
     std::cout << " Массив до сортировки : " << std::endl;
     array_print(test_array_async, 0, 50);
 
     //Создаем два потока для одновременной сортировки двух половин массива
-    std::future<void> thread1 = std::async(array_proceed, test_array_async, 0, 25, "thread1");
-    std::future<void> thread2 = std::async(array_proceed, test_array_async, 25, 50, "thread2");
+    std::future<void> thread_async1 = std::async(array_proceed, test_array_async, 0, 25, "thread1_async");
+    std::future<void> thread_async2 = std::async(array_proceed, test_array_async, 25, 50, "thread2_async");
     //Извлекаем результат выполнения асинхронных функций С++
-    thread1.get();
-    thread2.get();
+    thread_async1.get();
+    thread_async2.get();
 
     //Асинхронно сортируем весь массив
-    std::future<void> thread3 = std::async(array_proceed, test_array_async, 0, 50, "thread3");
-    thread3.get();
+    std::future<void> thread_async_master = std::async(array_proceed, test_array_async, 0, 50, "thread3");
+    thread_async_master.get();
     std::cout << "\n Массив после третьей сортировки (полностью) " << std::endl;
     array_print(test_array_async, 0, 50);
 
@@ -70,15 +99,15 @@ int main(int argc, char *argv[]) {
     std::cout << " Массив до сортировки : " << std::endl;
     array_print(test_array_async, 0, 50);
 
-    std::thread thread4(array_proceed, test_array_thread, 0, 25, "thread4");
-    std::thread thread5(array_proceed, test_array_thread, 25, 50, "thread5");
+    std::thread thread1(array_proceed, test_array_thread, 0, 25, "thread1");
+    std::thread thread2(array_proceed, test_array_thread, 25, 50, "thread2");
     //Это означает, что поток исполнения, который вызвал join,
     // будет ожидать завершения исполнения созданного потока. Блокирует вызывающий поток.
-    thread4.join();
-    thread5.join();
+    thread1.join();
+    thread2.join();
 
-    std::thread thread6(array_proceed, test_array_thread, 0, 50, "thread6");
-    thread6.join();
+    std::thread thread_master(array_proceed, test_array_thread, 0, 50, "thread_master");
+    thread_master.join();
 
     std::cout << "\n Массив после третьей сортировки (полностью) " << std::endl;
     array_print(test_array_async, 0, 50);
