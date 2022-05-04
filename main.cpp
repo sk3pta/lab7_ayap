@@ -62,7 +62,7 @@ void array_proceed(double *array, size_t from, size_t to, const std::string &thr
 
     for (size_t x = from; x < to; ++x) {
         std::cout << thread_name;
-        std::this_thread::sleep_for(std::chrono::milliseconds(0));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
         std::cout << "\n" << array[x] << "\n";
     }
 }
@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
     // Инициализируем массив и заполним его ГПСЧ
     double *test_array_async = new double[50];
     double *test_array_thread = new double[50];
-    std::ifstream inp("CLionProjects/lab2_7/in.txt");
+    std::ifstream inp("/home/augustus/CLionProjects/lab2_7/in.txt");
     array_from_file(50,test_array_async,inp);
     array_from_file(50,test_array_thread,inp);
     std::cout << " Массив до сортировки : " << std::endl;
